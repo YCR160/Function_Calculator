@@ -1,20 +1,24 @@
 ﻿#include <iostream>
 #include <string>
-#include <map>
-#include "My_Exception.h"
 #include "Token.h"
-#include "Interface.h"
 #include "My_Function.h"
-#include "Color_Print.h"
+#include "My_Exception.h"
 using namespace std;
 
 map <string, My_Function*> func;
+
+Expr* Get(string s)
+{
+	if (func.find(s) == func.end())throw(Var_Ex(0));
+	return func[s]->expression;
+}
 
 int main()
 {
 	string s;
 	char head[1005], body[1005];
 	int s_len, head_len, body_len;
+	INIT();
 	printf(">>>");
 	while (getline(cin, s) && s != "exit" && s != "quit")
 	{
@@ -25,7 +29,7 @@ int main()
 		head_len = 0;
 		body_len = 0;
 		int i = 0;
-		for (; i < s_len && s[i] != ' '; i++)
+		for (; i < s_len && s[i] != ' ' && s[i] != '='; i++)
 		{
 			head[i] = s[i];
 		}
@@ -37,7 +41,8 @@ int main()
 			if (s[i] == ' ')continue;
 			body[body_len++] = s[i];
 		}
-		//cout << head << " " << body << endl;
+		//cout << head << endl << body << endl;
+		//My_Exception* p = new Syntax_Ex(1);
 		try
 		{
 			if (body_len == 0)//要求显示函数定义
@@ -47,19 +52,21 @@ int main()
 					My_Function* p = new My_Function(head, head);
 					func[head] = p;
 				}
-				//cout << "*";
 				func[head]->print();
-				//cout << "#";
+				//for (auto ptr = func[head]->expression->Tokens.begin(); ptr != func[head]->expression->Tokens.end(); ptr++)
+				//{
+				//	if ((*ptr)->Type == VAR)cout << (*ptr)->var << " ";
+				//}
 			}
 			else if (body[0] == '=')//variable = expression 形式
 			{
-				//cout << "=";
 				for (int i = 1; i < body_len; i++)
 				{
 					body[i - 1] = body[i];
 				}
 				body_len--;
 				body[body_len] = '\0';
+				if (!body_len)throw(Func_Ex(0));
 				//cout << body << endl;
 				if (func.find(head) != func.end())//已有函数定义
 				{
@@ -67,21 +74,20 @@ int main()
 				}
 				else//未有函数定义
 				{
-					//cout << "new" << endl;
 					My_Function* p = new My_Function(head, body);
 					func[head] = p;
 				}
 			}
-			else if (head == "eval")//计算值
-			{
+			else if (!strcmp(head, "eval\0"))//计算值
+			{				
 				if (func.find(body) == func.end())
 				{
-					My_Function* p = new My_Function(head, body);
-					func[head] = p;
+					My_Function* p = new My_Function(body, body);
+					func[body] = p;
 				}
 				func[body]->eval();
 			}
-			else if (head == "show")//打印表达式树
+			else if (!strcmp(head, "show\0"))//打印表达式树
 			{
 				if (func.find(body) == func.end())
 				{
@@ -90,19 +96,22 @@ int main()
 				}
 				func[body]->show();
 			}
-			else if (head == "undefine")//取消函数的定义
+			else if (!strcmp(head, "undefine\0"))//取消函数的定义
 			{
-				if (func.find(head) != func.end())
+				if (func.find(body) != func.end())
 				{
+					//cout << "*";
 					delete func[body];
 					func.erase(body);
 				}
 			}
-			printf(">>>");
+			else throw(Ex_Command(0));
 		}
-		catch(My_Exception ex)
+		catch (My_Exception ex)
 		{
-			cout << ex << endl;
+			Color_Print(red, "[!] An exception has occurred!\n");
+			cout << ex;
 		}
+		printf(">>>");
 	}
 }

@@ -17,3 +17,4 @@ public:
 	void show();
 	~My_Function() { this->redefine(Function_name, Function_name); }
 };
+

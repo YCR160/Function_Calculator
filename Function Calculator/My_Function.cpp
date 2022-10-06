@@ -18,13 +18,18 @@ void My_Function::redefine(string name, string body)
 }
 void My_Function::eval()
 {
-	expression->Print();
-	printf("\n");
+	//for (auto ptr = expression->Tokens.begin(); ptr != expression->Tokens.end(); ptr++)
+	//{
+	//	if ((*ptr)->Type == VAR)cout << (*ptr)->var << ",";
+	//}
+	long double ans = expression->Eval(expression->Tokens.rbegin(), expression->Tokens.rend());
+	Color_Print(green, "[=]");	
+	cout << ans << endl;
 }
 void My_Function::print()
 {
-	Color_Print(green,"[+]");
-	expression->Print();
+	Color_Print(green, "[+]");
+	expression->Print(expression->Tokens.rbegin(), expression->Tokens.rend());
 	printf("\n");
 }
 void My_Function::show()

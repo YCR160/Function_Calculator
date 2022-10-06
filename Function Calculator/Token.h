@@ -1,6 +1,7 @@
 #pragma once
 #include<string>
 #include <vector>
+#include <map>
 using namespace std;
 
 enum TokenType {
@@ -18,12 +19,12 @@ class Expr;
 class Token
 {
 public:
-	int Start, End,Type;
+	int Start, End, Type;
 	char act = 0;//操作符号
 	string var;//变量
 	long double num = 0;//数字
-	Expr* expression;
-	Token(int type, const string& s, int start, int end);
+	Expr* expression = nullptr;
+	Token(int type, string s, int start, int end);
 };
 
 
@@ -34,7 +35,7 @@ class Expr
 public:
 	vector <Token*> Tokens;
 	Expr(const string& s);
-	void Print();
+	void Print(vector<Token*>::reverse_iterator, vector<Token*>::reverse_iterator);
 	long double Show();
-	long double Eval();
+	long double Eval(vector<Token*>::reverse_iterator, vector<Token*>::reverse_iterator);
 };

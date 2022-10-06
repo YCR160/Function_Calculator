@@ -3,7 +3,7 @@
 #include "My_Exception.h"
 using namespace std;
 
-Token::Token(int type, const string& s, int start, int end)
+Token::Token(int type, string s, int start, int end)
 {
 	Type = type;
 	Start = start;
@@ -17,12 +17,13 @@ Token::Token(int type, const string& s, int start, int end)
 			//cout << num << endl;
 			num *= 10;
 			num += s[i] - '0';
+			//cout << i << " ";
 		}
 		if (s[i] == '.')
 		{
 			if (i == End - 1)throw(Number_Ex(Start));
-			long double base = 1;
-			for (i++; s[i] >= '0' && s[i] <= '9'; i++)
+			long double base = 0.1;
+			for (i++; s[i] >= '0' && s[i] <= '9' && i < End; i++)
 			{
 				num += (s[i] - '0') * base;
 				base /= 10;
@@ -32,10 +33,11 @@ Token::Token(int type, const string& s, int start, int end)
 		if (i != End)throw(Number_Ex(Start));
 		break;
 	case VAR:
-		var = s.substr(start, end);
+		var = s.substr(start, end-start);
 		break;
 	case EXPR:
-		expression = new Expr(s.substr(start + 1, end - 1));
+		//cout << endl << s.substr(start, end-start) << endl;
+		expression = new Expr(s.substr(start, end-start));
 		break;
 	case PLUS:
 		if (End - Start != 1)throw(Symbol_Ex(Start));
