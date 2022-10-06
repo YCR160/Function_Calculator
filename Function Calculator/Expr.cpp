@@ -104,46 +104,84 @@ void Expr::Print(vector<Token*>::reverse_iterator start, vector<Token*>::reverse
 	auto it = start;
 	if (++it == end)
 	{
-		if ((*start)->Type == NUMBER)cout << (*start)->num;
-		else if ((*start)->Type == VAR)cout << (*start)->var;
+		if ((*start)->Type == NUMBER)
+		{
+			long double temp = (*start)->num;
+			char temp_s[1005] = { 0 };
+			sprintf_s(temp_s, sizeof(temp_s),"%.2lf", temp);
+			strncpy_s(Tree+Tree_len, sizeof(Tree) - Tree_len, temp_s, 100);
+			Tree_len += strlen(temp_s);
+			cout << temp;
+		}
+		else if ((*start)->Type == VAR)
+		{
+			const char* temp = (*start)->var.c_str();
+			char temp_s[1005] = { 0 };
+			sprintf_s(temp_s, sizeof(temp_s), "%s", temp);
+			strncpy_s(Tree + Tree_len, sizeof(Tree) - Tree_len, temp_s, 100);
+			Tree_len += strlen(temp_s);
+			cout << temp;
+		}
 		else if ((*start)->Type == EXPR)(*start)->expression->Print((*start)->expression->Tokens.rbegin(), (*start)->expression->Tokens.rend());
 		return;
 	}
 	for (it--; it != end; it++)
 	{
-		if ((*it)->Type == PLUS || (*it)->Type == MINUS)
+		if ((*it)->Type == PLUS || (*it)->Type == MINUS)//加减法
 		{
+			Tree_len+=sprintf_s(Tree + Tree_len, sizeof(Tree) - Tree_len, "(");
 			printf("(");
+
 			Print(++it, end);
 			it--;
+
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree)-Tree_len, " %c ", symbol[(*it)->Type]);
 			cout << " " << symbol[(*it)->Type] << " ";
+
 			Print(start, it);
+
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree)-Tree_len, ")");
+			printf(")");
+			//cout << endl << Tree_len << endl;
+			return;
+		}
+	}
+	for (it = start; it != end; it++)
+	{
+		if ((*it)->Type == MUL || (*it)->Type == SLASH)//乘除法
+		{
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree) - Tree_len, "(");
+			printf("(");
+
+			Print(++it, end);
+			it--;
+
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree) - Tree_len, " %c ", symbol[(*it)->Type]);
+			cout << " " << symbol[(*it)->Type] << " ";
+
+			Print(start, it);
+
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree) - Tree_len, ")");
 			printf(")");
 			return;
 		}
 	}
 	for (it = start; it != end; it++)
 	{
-		if ((*it)->Type == MUL || (*it)->Type == SLASH)
+		if ((*it)->Type == TIP)//乘方
 		{
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree) - Tree_len, "(");
 			printf("(");
+
 			Print(++it, end);
 			it--;
+
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree) - Tree_len, " %c ", symbol[(*it)->Type]);
 			cout << " " << symbol[(*it)->Type] << " ";
+
 			Print(start, it);
-			printf(")");
-			return;
-		}
-	}
-	for (it = start; it != end; it++)
-	{
-		if ((*it)->Type == TIP)
-		{
-			printf("(");
-			Print(++it, end);
-			it--;
-			cout << " " << symbol[(*it)->Type] << " ";
-			Print(start, it);
+
+			Tree_len += sprintf_s(Tree + Tree_len, sizeof(Tree) - Tree_len, ")");
 			printf(")");
 			return;
 		}
@@ -199,7 +237,69 @@ long double Expr::Eval(vector<Token*>::reverse_iterator start, vector<Token*>::r
 	return 0;
 }
 
-long double Expr::Show()
+void Expr::Show()
 {
-	return 0;
+	Print(Tokens.rbegin(), Tokens.rend());
+	cout << endl;
+	//cout << Tree_len << endl;
+	int level = 0,cnt=0;
+	for (int i = 0; i < Tree_len; i++)//获取括号重数
+	{
+		if (Tree[i] == '(')cnt++;
+		else if (Tree[i] == ')')cnt--;
+		if (cnt > level)level = cnt;
+	}
+	//cout << level << endl;
+	for (int i = 1; i <= level; i++)//输出第i重括号的内容
+	{
+		for (int j = 0; j < Tree_len; j++)//输出运算符号
+		{
+			if (Tree[j] == '(')cnt++;
+			else if (Tree[j] == ')')cnt--;
+			else if (cnt == i && (Tree[j] == '+' || Tree[j] == '-' || Tree[j] == '*' || Tree[j] == '/' || Tree[j] == '^'))printf("%c", Tree[j]);
+			else printf(" ");
+		}
+		printf("\n");
+		for (int j = 0; j < Tree_len; j++)//输出树的枝干
+		{
+			if (Tree[j] == '(')
+			{
+				printf(" ");
+				cnt++;
+			}
+			else if (Tree[j] == ')')
+			{
+				printf(" ");
+				cnt--;
+			}
+			else if (cnt == i)
+			{
+				printf("/");
+				for (; j < Tree_len && cnt >= i && Tree[j] != '+' && Tree[j] != '-' && Tree[j] != '*' && Tree[j] != '/' && Tree[j] != '^';j++)//去到运算符
+				{
+					//cout << j << " ";
+					if (Tree[j] == '(')cnt++;
+					else if (Tree[j] == ')')cnt--;
+					printf("-");
+				}
+				printf("\\");
+				for (; cnt >= i; j++)//走完数字
+				{
+					if (Tree[j] == '(')cnt++;
+					else if (Tree[j] == ')')cnt--;
+					printf(" ");
+				}
+			}
+			else printf(" ");
+		}
+		printf("\n");
+		for (int j = 0; j < Tree_len; j++)//输出数字或变量
+		{
+			if (Tree[j] == '(')cnt++;
+			else if (Tree[j] == ')')cnt--;
+			else if (cnt == i && Tree[j] != '+' && Tree[j] != '-' && Tree[j] != '*' && Tree[j] != '/' && Tree[j] != '^')printf("%c", Tree[j]);
+			else printf(" ");
+		}
+		printf("\n");
+	}
 }

@@ -28,14 +28,14 @@ public:
 };
 
 
-using namespace std;
-
 class Expr
 {
 public:
 	vector <Token*> Tokens;
+	char Tree[1005] = { 0 };
+	int Tree_len = 0;
 	Expr(const string& s);
 	void Print(vector<Token*>::reverse_iterator, vector<Token*>::reverse_iterator);
-	long double Show();
+	void Show();
 	long double Eval(vector<Token*>::reverse_iterator, vector<Token*>::reverse_iterator);
 };
